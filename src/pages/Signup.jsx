@@ -5,9 +5,13 @@ const Signup = () => {
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    signup({ name: "New User", email: "new@almina.com" });
+    const name  = e.target[0].value;
+    const email = e.target[1].value;
+    const password = e.target[2].value;
+
+    await signup({ name, email, password});
     navigate("/account");
   };
 

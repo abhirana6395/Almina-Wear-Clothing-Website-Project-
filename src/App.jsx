@@ -17,6 +17,18 @@ import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 
+import AdminLayout from "./admin/AdminLayout";
+import AdminDashboard from "./admin/pages/AdminDashboard";
+import AdminProducts from "./admin/pages/AdminProducts";
+import AdminRoute from "./admin/AdminRoute";
+import AdminUsers from "./admin/pages/AdminUsers";
+import AdminOrders from "./admin/pages/AdminOrders";
+
+
+
+         
+
+
 function App() {
   return (
     <AuthProvider>
@@ -53,6 +65,21 @@ function App() {
     </ProtectedRoute>
   }
 />
+    <Route
+  path="/admin"
+  element={
+    <AdminRoute>
+      <AdminLayout />
+    </AdminRoute>
+  }
+>
+  <Route path="dashboard" element={<AdminDashboard />} />
+  <Route path="products" element={<AdminProducts />} />
+  <Route path="users" element={<AdminUsers />} />
+  <Route path="orders" element={<AdminOrders />} />
+</Route>
+
+
             
           </Route>
         </Routes>

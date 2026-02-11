@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
-import products from "../data/products";
 import { useAuth } from "../context/AuthContext";
 
 

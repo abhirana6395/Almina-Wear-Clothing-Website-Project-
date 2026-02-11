@@ -1,105 +1,67 @@
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { createRazorpayOrder, verifyPayment } from "../api/paymentApi";
 
 const Checkout = () => {
   const { cart, totalPrice } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handlePlaceOrder = (e) => {
+  const handlePayment = async (e) => {
     e.preventDefault();
-    navigate("/order-success");
+
+    const form = e.target;
+
+    const address = {
+      fullName: form.fullName.value,
+      phone: form.phone.value,
+      pincode: form.pincode.value,
+      city: form.city.value,
+      state: form.state.value,
+      addressLine: form.addressLine.value,
+    };
+
+    const { data } = await createRazorpayOrder(totalPrice * 100);
+
+    const options = {
+      key: "rzp_test_SESslrvSTpQGXw",
+      amount: data.amount,
+      currency: "INR",
+      order_id: data.id,
+      handler: async function (response) {
+        await verifyPayment({
+          razorpayOrderId: data.id,
+          razorpayPaymentId: response.razorpay_payment_id,
+          razorpaySignature: response.razorpay_signature,
+          email: user.email,
+          totalAmount: totalPrice,
+          items: cart,
+          address,
+        });
+
+        navigate("/order-success");
+      },
+    };
+
+    new window.Razorpay(options).open();
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 py-16 grid grid-cols-1 lg:grid-cols-2 gap-12">
-      
-      {/* LEFT — FORM */}
-      <form
-        onSubmit={handlePlaceOrder}
-        className="space-y-6"
-      >
-        <h2 className="text-3xl font-bold mb-4">
-          Checkout
-        </h2>
+    <form onSubmit={handlePayment} className="max-w-3xl mx-auto py-16 space-y-4">
+      <h1 className="text-3xl font-bold">Checkout</h1>
 
-        <input
-          required
-          placeholder="Full Name"
-          className="w-full border px-4 py-3"
-        />
-        <input
-          required
-          placeholder="Email"
-          type="email"
-          className="w-full border px-4 py-3"
-        />
-        <input
-          required
-          placeholder="Phone"
-          className="w-full border px-4 py-3"
-        />
-        <textarea
-          required
-          placeholder="Shipping Address"
-          className="w-full border px-4 py-3"
-        />
+      <input name="fullName" placeholder="Full Name" className="border p-3 w-full" />
+      <input name="phone" placeholder="Phone" className="border p-3 w-full" />
+      <input name="pincode" placeholder="Pincode" className="border p-3 w-full" />
+      <input name="city" placeholder="City" className="border p-3 w-full" />
+      <input name="state" placeholder="State" className="border p-3 w-full" />
+      <textarea name="addressLine" placeholder="Full Address" className="border p-3 w-full" />
 
-        {/* PAYMENT */}
-        <div>
-          <p className="font-semibold mb-2">
-            Payment Method
-          </p>
-          <div className="space-y-2">
-            <label className="flex gap-2 items-center">
-              <input type="radio" checked readOnly />
-              Cash on Delivery
-            </label>
-            <label className="flex gap-2 items-center opacity-50">
-              <input type="radio" disabled />
-              Online Payment (Coming Soon)
-            </label>
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          className="
-            w-full bg-black text-white py-3
-            hover:opacity-90 transition
-          "
-        >
-          Place Order
-        </button>
-      </form>
-
-      {/* RIGHT — SUMMARY */}
-      <div className="border p-6 h-fit sticky top-24">
-        <h3 className="text-xl font-bold mb-4">
-          Order Summary
-        </h3>
-
-        {cart.map((item) => (
-          <div
-            key={item.id}
-            className="flex justify-between text-sm mb-2"
-          >
-            <span>
-              {item.name} × {item.qty}
-            </span>
-            <span>
-              ₹{(item.price * item.qty).toFixed(2)}
-            </span>
-          </div>
-        ))}
-
-        <hr className="my-4" />
-
-        <div className="flex justify-between font-bold text-lg">
-          <span>Total</span>
-          <span>₹{totalPrice.toFixed(2)}</span>
-        </div>
-      </div>
-    </section>
+      <button className="bg-black text-white py-4 w-full rounded-xl">
+        Pay ₹{totalPrice}
+      </button>
+    </form>
   );
 };
 

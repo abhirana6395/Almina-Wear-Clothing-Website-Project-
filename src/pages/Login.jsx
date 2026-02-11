@@ -5,23 +5,47 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    login({ name: "Demo User", email: "demo@almina.com" });
-    navigate("/account");
+
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
+    try {
+      const role = await login({ email, password });
+
+      // ✅ ROLE BASED REDIRECT
+      if (role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/account");
+      }
+    } catch (err) {
+      alert("Invalid email or password");
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black px-6">
       <div className="bg-white rounded-3xl p-10 w-full max-w-md">
-
         <h1 className="text-3xl font-bold text-center mb-6">
           Welcome Back 🖤
         </h1>
 
         <form onSubmit={handleLogin} className="space-y-4">
-          <input className="w-full border p-4 rounded-xl" placeholder="Email" />
-          <input className="w-full border p-4 rounded-xl" placeholder="Password" />
+          <input
+            name="email"
+            required
+            className="w-full border p-4 rounded-xl"
+            placeholder="Email"
+          />
+          <input
+            name="password"
+            type="password"
+            required
+            className="w-full border p-4 rounded-xl"
+            placeholder="Password"
+          />
 
           <button className="w-full py-4 rounded-xl bg-black text-white">
             Sign In
